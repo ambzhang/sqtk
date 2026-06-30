@@ -7,24 +7,19 @@
 -- 1. 启用 pg_net 扩展(Supabase 内置,用于在数据库里发 HTTP 请求)
 create extension if not exists pg_net with schema extensions;
 
--- 2. 把两个配置写进数据库(替换成你自己的值!)
---    NOTIFY_URL    = 你部署后的网站通知接口地址
+-- 2. 升级 handle_new_user:建 profile 的同时,异步发通知
+--    注意:Supabase 托管环境不允许 alter database set 参数(权限不足),
+--    因此把 URL 和 secret 直接写在函数里(替换成你自己的值!)。
+--    NOTIFY_URL    = 你部署后的网站通知接口地址(vercel.app 域名最稳)
 --    NOTIFY_SECRET = 与 Vercel 环境变量 NOTIFY_SECRET 完全一致的那串随机字符串
---
---    用 vercel.app 域名最稳(不受未备案拦截影响):
---      https://sqtk.vercel.app/api/notify
-alter database postgres set "app.notify_url"    = 'https://sqtk.vercel.app/api/notify';
-alter database postgres set "app.notify_secret" = '把这里换成你的_NOTIFY_SECRET';
-
--- 3. 升级 handle_new_user:建 profile 的同时,异步发通知
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
 security definer set search_path = public, extensions
 as $$
 declare
-  v_url    text := current_setting('app.notify_url', true);
-  v_secret text := current_setting('app.notify_secret', true);
+  v_url    text := 'https://sqtk.vercel.app/api/notify';
+  v_secret text := '把这里换成你的_NOTIFY_SECRET';
   v_username text := split_part(new.email, '@', 1);
 begin
   -- 原有逻辑:建用户 profile
@@ -50,7 +45,7 @@ begin
 end;
 $$;
 
--- 触发器已在 schema.sql 创建,这里无需重复。若想确认,可重新绑定:
+-- 3. 触发器已在 schema.sql 创建,这里重新绑定以确保指向最新函数:
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
