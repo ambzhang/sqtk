@@ -10,6 +10,7 @@ import {
   optionLetter,
 } from "@/lib/grade";
 import { createClient } from "@/lib/supabase/client";
+import SimpleMarkdown from "./SimpleMarkdown";
 
 interface Props {
   question: Question;
@@ -44,13 +45,44 @@ export default function QuestionCard({
   const [fav, setFav] = useState(initialFav);
   const [favBusy, setFavBusy] = useState(false);
 
+  // AI 解析状态
+  const [aiText, setAiText] = useState<string>(question.ai_explanation || "");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string>("");
+
   // 题目切换时重置
   useEffect(() => {
     setSelected([]);
     setSubmitted(false);
     setIsCorrect(false);
     setFav(initialFav);
-  }, [question.id, initialFav]);
+    setAiText(question.ai_explanation || "");
+    setAiLoading(false);
+    setAiError("");
+  }, [question.id, initialFav, question.ai_explanation]);
+
+  async function generateAiExplain() {
+    if (aiLoading) return;
+    setAiLoading(true);
+    setAiError("");
+    try {
+      const res = await fetch("/api/ai-explain", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ questionId: question.id }),
+      });
+      const data = await res.json();
+      if (data.ok && data.explanation) {
+        setAiText(data.explanation);
+      } else {
+        setAiError(data.error || "生成失败,请稍后重试");
+      }
+    } catch {
+      setAiError("网络错误,请稍后重试");
+    } finally {
+      setAiLoading(false);
+    }
+  }
 
   function toggle(letter: string) {
     if (submitted) return;
@@ -275,6 +307,53 @@ export default function QuestionCard({
           )}
         </div>
       )}
+
+      {/* AI 一键解析 */}
+      <div className="mt-4 border-t border-slate-100 pt-4 dark:border-slate-700">
+        {!aiText && !aiLoading && (
+          <button
+            onClick={generateAiExplain}
+            className="inline-flex items-center gap-2 rounded-xl border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-medium text-brand-600 transition hover:bg-brand-100 active:scale-95 dark:border-brand-700 dark:bg-brand-900/30 dark:text-brand-300 dark:hover:bg-brand-900/50"
+          >
+            <span>✨</span>
+            <span>AI 一键解析</span>
+          </button>
+        )}
+
+        {aiLoading && (
+          <div className="flex items-center gap-2 text-sm text-brand-500">
+            <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-brand-300 border-t-brand-600" />
+            AI 正在生成解析…
+          </div>
+        )}
+
+        {aiError && (
+          <div className="mt-2 flex items-center gap-3 text-sm text-red-500">
+            <span>{aiError}</span>
+            <button onClick={generateAiExplain} className="underline">
+              重试
+            </button>
+          </div>
+        )}
+
+        {aiText && (
+          <div className="animate-fade-in rounded-xl border border-brand-100 bg-gradient-to-br from-brand-50/60 to-transparent p-4 dark:border-brand-800/60 dark:from-brand-900/20">
+            <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-brand-600 dark:text-brand-300">
+              <span>✨</span>
+              <span>AI 解析</span>
+              <button
+                onClick={generateAiExplain}
+                disabled={aiLoading}
+                className="ml-auto text-xs font-normal text-slate-400 underline hover:text-brand-500"
+                title="重新生成"
+              >
+                重新生成
+              </button>
+            </div>
+            <SimpleMarkdown content={aiText} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

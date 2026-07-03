@@ -12,6 +12,8 @@ export interface Question {
   answer: string;
   explanation: string;
   quality: Quality;
+  ai_explanation?: string | null;
+  ai_explained_at?: string | null;
 }
 
 export interface MyStats {
