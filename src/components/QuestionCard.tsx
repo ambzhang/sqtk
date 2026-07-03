@@ -47,8 +47,10 @@ export default function QuestionCard({
 
   // AI 解析状态
   const [aiText, setAiText] = useState<string>(question.ai_explanation || "");
+  const [aiReasoning, setAiReasoning] = useState<string>(""); // 思考过程
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string>("");
+  const [reasoningOpen, setReasoningOpen] = useState(true); // 思考过程折叠态
 
   // 题目切换时重置
   useEffect(() => {
@@ -57,25 +59,90 @@ export default function QuestionCard({
     setIsCorrect(false);
     setFav(initialFav);
     setAiText(question.ai_explanation || "");
+    setAiReasoning("");
     setAiLoading(false);
     setAiError("");
+    setReasoningOpen(true);
   }, [question.id, initialFav, question.ai_explanation]);
 
-  async function generateAiExplain() {
+  async function generateAiExplain(force = false) {
     if (aiLoading) return;
     setAiLoading(true);
     setAiError("");
+    setAiReasoning("");
+    setAiText("");
+    setReasoningOpen(true);
+
     try {
       const res = await fetch("/api/ai-explain", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ questionId: question.id }),
+        body: JSON.stringify({
+          questionId: question.id,
+          force,
+          // 兜底:把题目内容一起传过去,数据库查不到 id 也能正常解析
+          fallback: {
+            type: question.type,
+            question: question.question,
+            options: question.options || [],
+            answer: question.answer || "",
+          },
+        }),
       });
-      const data = await res.json();
-      if (data.ok && data.explanation) {
-        setAiText(data.explanation);
-      } else {
-        setAiError(data.error || "生成失败,请稍后重试");
+
+      if (!res.ok && !res.body) {
+        setAiError("生成失败,请稍后重试");
+        setAiLoading(false);
+        return;
+      }
+      if (!res.body) {
+        setAiError("服务未返回数据,请重试");
+        setAiLoading(false);
+        return;
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let reasoning = "";
+      let answer = "";
+      let gotError = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          const t = line.trim();
+          if (!t.startsWith("data:")) continue;
+          const payload = t.slice(5).trim();
+          if (!payload) continue;
+          try {
+            const evt = JSON.parse(payload);
+            if (evt.type === "reasoning" && evt.delta) {
+              reasoning += evt.delta;
+              setAiReasoning(reasoning);
+            } else if (evt.type === "answer" && evt.delta) {
+              answer += evt.delta;
+              setAiText(answer);
+              // 开始出最终结果时,自动折叠思考过程
+              if (reasoning) setReasoningOpen(false);
+            } else if (evt.type === "error") {
+              gotError = evt.error || "生成失败";
+            } else if (evt.type === "done") {
+              // 完成
+            }
+          } catch {
+            // 忽略不完整/无法解析的行
+          }
+        }
+      }
+
+      if (gotError && !answer) {
+        setAiError(gotError);
       }
     } catch {
       setAiError("网络错误,请稍后重试");
@@ -310,9 +377,10 @@ export default function QuestionCard({
 
       {/* AI 一键解析 */}
       <div className="mt-4 border-t border-slate-100 pt-4 dark:border-slate-700">
-        {!aiText && !aiLoading && (
+        {/* 初始按钮:没有任何内容且不在加载时显示 */}
+        {!aiText && !aiReasoning && !aiLoading && !aiError && (
           <button
-            onClick={generateAiExplain}
+            onClick={() => generateAiExplain(false)}
             className="inline-flex items-center gap-2 rounded-xl border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-medium text-brand-600 transition hover:bg-brand-100 active:scale-95 dark:border-brand-700 dark:bg-brand-900/30 dark:text-brand-300 dark:hover:bg-brand-900/50"
           >
             <span>✨</span>
@@ -320,37 +388,68 @@ export default function QuestionCard({
           </button>
         )}
 
-        {aiLoading && (
+        {/* 解析过程(思考)区块:有思考内容就展示 */}
+        {aiReasoning && (
+          <div className="mb-3 overflow-hidden rounded-xl border border-slate-200 bg-slate-50/70 dark:border-slate-700 dark:bg-slate-800/40">
+            <button
+              onClick={() => setReasoningOpen((v) => !v)}
+              className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm font-medium text-slate-500 dark:text-slate-400"
+            >
+              <span>🧠</span>
+              <span>AI 解析过程{aiLoading && !aiText ? "(思考中…)" : ""}</span>
+              <span className="ml-auto text-xs">
+                {reasoningOpen ? "收起 ▲" : "展开 ▼"}
+              </span>
+            </button>
+            {reasoningOpen && (
+              <div className="max-h-72 overflow-y-auto border-t border-slate-200 px-4 py-3 text-[13px] leading-relaxed text-slate-500 dark:border-slate-700 dark:text-slate-400">
+                <div className="whitespace-pre-wrap">{aiReasoning}</div>
+                {aiLoading && !aiText && (
+                  <span className="ml-0.5 inline-block h-3.5 w-[2px] animate-pulse bg-slate-400 align-middle" />
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 加载中但还没开始思考:显示 loading 提示 */}
+        {aiLoading && !aiReasoning && !aiText && (
           <div className="flex items-center gap-2 text-sm text-brand-500">
             <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-brand-300 border-t-brand-600" />
-            AI 正在生成解析…
+            AI 正在准备解析…
           </div>
         )}
 
-        {aiError && (
-          <div className="mt-2 flex items-center gap-3 text-sm text-red-500">
-            <span>{aiError}</span>
-            <button onClick={generateAiExplain} className="underline">
-              重试
-            </button>
-          </div>
-        )}
-
+        {/* 最终解析结果:展示在解析过程下方 */}
         {aiText && (
           <div className="animate-fade-in rounded-xl border border-brand-100 bg-gradient-to-br from-brand-50/60 to-transparent p-4 dark:border-brand-800/60 dark:from-brand-900/20">
             <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-brand-600 dark:text-brand-300">
               <span>✨</span>
-              <span>AI 解析</span>
-              <button
-                onClick={generateAiExplain}
-                disabled={aiLoading}
-                className="ml-auto text-xs font-normal text-slate-400 underline hover:text-brand-500"
-                title="重新生成"
-              >
-                重新生成
-              </button>
+              <span>AI 解析{aiLoading ? "(生成中…)" : ""}</span>
+              {!aiLoading && (
+                <button
+                  onClick={() => generateAiExplain(true)}
+                  className="ml-auto text-xs font-normal text-slate-400 underline hover:text-brand-500"
+                  title="重新生成"
+                >
+                  重新生成
+                </button>
+              )}
             </div>
             <SimpleMarkdown content={aiText} />
+            {aiLoading && (
+              <span className="ml-0.5 inline-block h-4 w-[2px] animate-pulse bg-brand-500 align-middle" />
+            )}
+          </div>
+        )}
+
+        {/* 错误提示 */}
+        {aiError && (
+          <div className="mt-2 flex items-center gap-3 text-sm text-red-500">
+            <span>{aiError}</span>
+            <button onClick={() => generateAiExplain(false)} className="underline">
+              重试
+            </button>
           </div>
         )}
       </div>
