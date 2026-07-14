@@ -158,7 +158,8 @@ body {
   mask-image: linear-gradient(to bottom, transparent, #000 40%, #000 70%, transparent);
 }
 
-/* 漂浮宇航员 */
+/* ===== 漂浮宇航员（SVG 多层动画） ===== */
+/* 整体失重漂浮 */
 .astro-float {
   animation: astro-drift 12s ease-in-out infinite;
   transform-origin: center;
@@ -171,8 +172,64 @@ body {
   75%  { transform: translate3d(16px, -12px, 0) rotate(1deg); }
   100% { transform: translate3d(0, 0, 0) rotate(-4deg); }
 }
+
+/* 手臂划水轻摆 */
+.limb-l { animation: limb-swing-l 4.5s ease-in-out infinite; }
+.limb-r { animation: limb-swing-r 5s ease-in-out infinite; }
+@keyframes limb-swing-l {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-12deg); }
+}
+@keyframes limb-swing-r {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(10deg); }
+}
+
+/* 腿部轻摆 */
+.leg-l { animation: leg-swing-l 6s ease-in-out infinite; }
+.leg-r { animation: leg-swing-r 6.5s ease-in-out infinite; }
+@keyframes leg-swing-l {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(6deg); }
+}
+@keyframes leg-swing-r {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-7deg); }
+}
+
+/* 系绳飘动 */
+.tether-sway { animation: tether-sway 7s ease-in-out infinite; }
+@keyframes tether-sway {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(5deg); }
+}
+
+/* 推进器喷气脉冲 */
+.thruster { animation: thruster 1.4s ease-in-out infinite; }
+@keyframes thruster {
+  0%, 100% { opacity: 0.35; transform: scaleY(0.8); }
+  50% { opacity: 0.95; transform: scaleY(1.15); }
+}
+
+/* 面罩流光扫过 */
+.visor-shine { animation: visor-shine 5s ease-in-out infinite; }
+@keyframes visor-shine {
+  0% { transform: translateX(-10px) skewX(-12deg); opacity: 0; }
+  35% { opacity: 0.9; }
+  70% { transform: translateX(72px) skewX(-12deg); opacity: 0; }
+  100% { transform: translateX(72px) skewX(-12deg); opacity: 0; }
+}
+
+/* 星尘闪烁 */
+.star-twinkle { animation: star-twinkle 2.8s ease-in-out infinite; }
+@keyframes star-twinkle {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .astro-float { animation: none; }
+  .astro-float, .limb-l, .limb-r, .leg-l, .leg-r,
+  .tether-sway, .thruster, .visor-shine, .star-twinkle { animation: none; }
 }
 
 /* 向下滚动指示 */
