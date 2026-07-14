@@ -183,21 +183,43 @@ export default async function PortalHome() {
             </TiltCard>
           </Reveal>
 
-          {/* 占位项目 1 */}
+          {/* 安卓远程控制 - 真实（可下载 APK） */}
           <Reveal delay={120}>
-            <TiltCard max={8}>
-              <div className="glass group relative flex h-full flex-col rounded-3xl p-7 transition hover:bg-white/[0.06]">
-                <div className="absolute right-5 top-5 rounded-full bg-white/5 px-3 py-1 text-xs text-slate-400 ring-1 ring-white/10">
-                  敬请期待
+            <TiltCard>
+              <div className="spin-border shine group relative flex h-full flex-col overflow-hidden rounded-3xl bg-white/[0.04] p-7 backdrop-blur transition duration-300 hover:bg-white/[0.07]">
+                <div className="absolute right-5 top-5 rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-medium text-emerald-300 ring-1 ring-emerald-500/30">
+                  ● 可下载
                 </div>
-                <div className="mb-5 grid h-16 w-16 place-items-center rounded-2xl bg-white/5 text-4xl opacity-60 ring-1 ring-white/10">
-                  🧰
+                <div className="float-slow mb-5 grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-emerald-500/30 to-cyan-500/30 text-4xl ring-1 ring-white/10">
+                  📱
                 </div>
-                <h3 className="text-xl font-bold text-slate-300">效率工具箱</h3>
-                <p className="mt-2 text-sm leading-relaxed text-slate-500">
-                  一站式在线小工具集合：格式转换、编码解码、时间戳、JSON 美化等，规划中。
+                <h3 className="text-xl font-bold text-white">安卓远程控制</h3>
+                <p className="mt-2 text-sm leading-relaxed text-slate-400">
+                  一款轻量的 Android 远程控制应用，支持远程查看与操控设备屏幕、文件传输、
+                  实时协助，适合远程运维与家人协助场景。
                 </p>
-                <div className="mt-auto pt-6 text-sm text-slate-600">开发中 · Coming soon</div>
+                <div className="mt-5 flex flex-wrap gap-2">
+                  {["远程操控", "文件传输", "实时协助", "APK"].map((t) => (
+                    <span key={t} className="rounded-md bg-white/5 px-2.5 py-1 text-xs text-slate-300 ring-1 ring-white/10">
+                      {t}
+                    </span>
+                  ))}
+                </div>
+                <div className="mt-auto flex items-center justify-between gap-3 border-t border-white/10 pt-4 text-sm">
+                  <Link
+                    href="/remote-control"
+                    className="font-medium text-slate-300 transition hover:text-white"
+                  >
+                    查看介绍 →
+                  </Link>
+                  <a
+                    href="/RemoteControl.apk"
+                    download
+                    className="rounded-full bg-emerald-500/90 px-4 py-1.5 text-xs font-semibold text-white shadow-lg shadow-emerald-500/30 transition hover:scale-105 hover:bg-emerald-400"
+                  >
+                    ↓ 下载 APK
+                  </a>
+                </div>
               </div>
             </TiltCard>
           </Reveal>
