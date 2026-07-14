@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import StarField from "@/components/portal/StarField";
+import Astronaut from "@/components/portal/Astronaut";
 import Reveal from "@/components/portal/Reveal";
 import TiltCard from "@/components/portal/TiltCard";
 import CursorGlow from "@/components/portal/CursorGlow";
@@ -34,6 +35,7 @@ export default async function PortalHome() {
     <div className="relative min-h-screen overflow-hidden bg-[#070b16] text-slate-100">
       {/* 背景层 */}
       <StarField />
+      <Astronaut />
       <div className="aurora" />
       <div className="blob left-[-10%] top-[-5%] h-[420px] w-[420px] bg-blue-600/40" />
       <div
@@ -140,10 +142,7 @@ export default async function PortalHome() {
       {/* 项目集合 */}
       <section id="projects" className="relative z-10 mx-auto max-w-6xl px-6 py-16">
         <Reveal className="mb-12 text-center">
-          <h2 className="text-3xl font-bold sm:text-4xl">
-            <span className="glitch" data-text="项目集合">项目集合</span>
-          </h2>
-          <p className="mt-3 text-slate-400">悬停卡片体验 3D 交互 · 点击进入应用</p>
+          <p className="text-slate-400">悬停卡片体验 3D 交互 · 点击进入应用</p>
         </Reveal>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -229,10 +228,7 @@ export default async function PortalHome() {
         <Reveal className="spin-border overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-transparent p-8 backdrop-blur sm:p-12">
           <div className="grid gap-10 md:grid-cols-2 md:items-center">
             <div>
-              <h2 className="text-3xl font-bold">
-                <span className="glitch" data-text="关于这个空间">关于这个空间</span>
-              </h2>
-              <p className="mt-4 leading-relaxed text-slate-400">
+              <p className="leading-relaxed text-slate-400">
                 SQTK.site 是我个人的项目门户，用来承载各类自建应用。所有项目均采用现代化前端技术栈，
                 部署于全球 CDN 边缘网络，追求流畅、快速与优雅的体验。
               </p>
