@@ -171,20 +171,8 @@ body {
   75%  { transform: translate3d(16px, -12px, 0) rotate(1deg); }
   100% { transform: translate3d(0, 0, 0) rotate(-4deg); }
 }
-/* 手脚随身体轻微摆动 */
-.astro-body { animation: astro-limbs 6s ease-in-out infinite; transform-origin: 130px 200px; }
-@keyframes astro-limbs {
-  0%, 100% { transform: rotate(0deg); }
-  50% { transform: rotate(-3deg); }
-}
-/* 系绳轻摆 */
-.astro-tether { animation: astro-tether 7s ease-in-out infinite; transform-origin: 40px 6px; }
-@keyframes astro-tether {
-  0%, 100% { transform: rotate(0deg); }
-  50% { transform: rotate(4deg); }
-}
 @media (prefers-reduced-motion: reduce) {
-  .astro-float, .astro-body, .astro-tether { animation: none; }
+  .astro-float { animation: none; }
 }
 
 /* 向下滚动指示 */
