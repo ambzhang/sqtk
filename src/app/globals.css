@@ -157,3 +157,194 @@ body {
   100% { transform: translateY(10px); opacity: 0; }
 }
 .scroll-hint { animation: scroll-hint 1.8s ease-in-out infinite; }
+
+/* ============ 炫酷特效增强 ============ */
+
+/* 极光流动背景（多层色带缓慢流动） */
+.aurora {
+  position: absolute;
+  inset: -20% -20% auto -20%;
+  height: 80%;
+  background:
+    radial-gradient(60% 60% at 20% 30%, rgba(59,130,246,0.35), transparent 60%),
+    radial-gradient(50% 60% at 80% 20%, rgba(217,70,239,0.30), transparent 60%),
+    radial-gradient(55% 55% at 50% 80%, rgba(34,211,238,0.25), transparent 60%);
+  filter: blur(40px);
+  animation: aurora-move 18s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+@keyframes aurora-move {
+  0%   { transform: translate3d(0,0,0) rotate(0deg) scale(1); }
+  50%  { transform: translate3d(3%,4%,0) rotate(6deg) scale(1.1); }
+  100% { transform: translate3d(-3%,-2%,0) rotate(-4deg) scale(1.05); }
+}
+
+/* 巨型标题：多色渐变流动 + 发光脉冲 */
+.hero-title {
+  background: linear-gradient(100deg,#93c5fd 0%,#c4b5fd 25%,#67e8f9 50%,#f0abfc 75%,#93c5fd 100%);
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: neon-flow 5s linear infinite;
+  filter: drop-shadow(0 0 24px rgba(139,120,255,0.35));
+}
+
+/* Glitch 故障文字（叠两层错位彩色） */
+.glitch {
+  position: relative;
+  display: inline-block;
+}
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  pointer-events: none;
+}
+.glitch::before {
+  background: linear-gradient(90deg,#22d3ee,#22d3ee);
+  animation: glitch-x 3.6s infinite steps(2, jump-none);
+  opacity: 0.7;
+}
+.glitch::after {
+  background: linear-gradient(90deg,#ec4899,#ec4899);
+  animation: glitch-y 4.2s infinite steps(2, jump-none);
+  opacity: 0.7;
+}
+@keyframes glitch-x {
+  0%,92%,100% { transform: translate(0,0); clip-path: inset(0 0 0 0); }
+  93% { transform: translate(-3px,-2px); clip-path: inset(20% 0 40% 0); }
+  95% { transform: translate(3px,1px); clip-path: inset(60% 0 10% 0); }
+  97% { transform: translate(-2px,2px); clip-path: inset(10% 0 70% 0); }
+}
+@keyframes glitch-y {
+  0%,90%,100% { transform: translate(0,0); clip-path: inset(0 0 0 0); }
+  91% { transform: translate(2px,2px); clip-path: inset(50% 0 20% 0); }
+  94% { transform: translate(-3px,-1px); clip-path: inset(15% 0 55% 0); }
+  96% { transform: translate(2px,-2px); clip-path: inset(70% 0 5% 0); }
+}
+
+/* 逐字浮现 */
+.rise-word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(24px) rotateX(-40deg);
+  animation: rise-in 0.7s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+@keyframes rise-in {
+  to { opacity: 1; transform: translateY(0) rotateX(0); }
+}
+
+/* 3D 倾斜卡片 */
+.tilt-card {
+  position: relative;
+  transform-style: preserve-3d;
+  transform: perspective(900px) rotateX(var(--rx,0)) rotateY(var(--ry,0))
+    translateZ(calc(var(--tz,0) * 6px));
+  transition: transform 0.25s ease;
+  will-change: transform;
+}
+.tilt-inner { position: relative; z-index: 1; height: 100%; }
+/* 跟随鼠标的高光 */
+.tilt-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    260px circle at var(--mx,50%) var(--my,50%),
+    rgba(255,255,255,0.16),
+    transparent 60%
+  );
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  z-index: 2;
+}
+.tilt-card:hover .tilt-glow { opacity: 1; }
+
+/* 卡片旋转流光边框 */
+.spin-border {
+  position: relative;
+  isolation: isolate;
+}
+.spin-border::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(from var(--a,0deg),
+    #60a5fa, #a78bfa, #22d3ee, #ec4899, #60a5fa);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.4;
+  transition: opacity 0.4s;
+  animation: spin-a 6s linear infinite;
+  z-index: -1;
+}
+.spin-border:hover::before { opacity: 1; }
+@property --a {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes spin-a {
+  to { --a: 360deg; }
+}
+
+/* 扫光高光（hover 时一道光扫过） */
+.shine {
+  position: relative;
+  overflow: hidden;
+}
+.shine::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 40%;
+  height: 100%;
+  transform: skewX(-20deg);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+  transition: left 0.7s ease;
+  pointer-events: none;
+}
+.shine:hover::after { left: 130%; }
+
+/* 主按钮：外发光呼吸 */
+.glow-btn {
+  animation: btn-glow 2.6s ease-in-out infinite;
+}
+@keyframes btn-glow {
+  0%,100% { box-shadow: 0 0 24px rgba(96,165,250,0.45), 0 0 4px rgba(167,139,250,0.4); }
+  50% { box-shadow: 0 0 44px rgba(167,139,250,0.7), 0 0 12px rgba(34,211,238,0.5); }
+}
+
+/* 徽章脉冲边框 */
+.pulse-ring {
+  animation: pulse-ring 2.4s ease-in-out infinite;
+}
+@keyframes pulse-ring {
+  0%,100% { box-shadow: 0 0 0 0 rgba(96,165,250,0.35); }
+  50% { box-shadow: 0 0 0 6px rgba(96,165,250,0); }
+}
+
+/* 数字/图标持续浮动 */
+.float-slow {
+  animation: float-slow 5s ease-in-out infinite;
+}
+
+/* prefers-reduced-motion 降级 */
+@media (prefers-reduced-motion: reduce) {
+  .aurora, .hero-title, .glitch::before, .glitch::after,
+  .rise-word, .spin-border::before, .glow-btn, .pulse-ring, .float-slow,
+  .blob, .neon-text, .scroll-hint {
+    animation: none !important;
+  }
+  .rise-word { opacity: 1; transform: none; }
+}
