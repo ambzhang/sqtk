@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
 const NAV = [
-  { href: "/", label: "首页" },
+  { href: "/shuati", label: "首页" },
   { href: "/browse", label: "题库" },
   { href: "/practice", label: "刷题" },
   { href: "/wrong", label: "错题本" },
@@ -46,14 +46,14 @@ export default function Navbar() {
 
   async function signOut() {
     await supabase.auth.signOut();
-    router.push("/");
+    router.push("/shuati");
     router.refresh();
   }
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/80 backdrop-blur-md dark:border-slate-700/60 dark:bg-slate-900/80">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
-        <Link href="/" className="flex items-center gap-2 font-bold text-brand-600 dark:text-brand-300">
+        <Link href="/shuati" className="flex items-center gap-2 font-bold text-brand-600 dark:text-brand-300">
           <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand-500 text-white">题</span>
           <span className="hidden sm:inline">社区刷题</span>
         </Link>

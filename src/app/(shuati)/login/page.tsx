@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 function LoginInner() {
   const router = useRouter();
   const params = useSearchParams();
-  const redirect = params.get("redirect") || "/";
+  const redirect = params.get("redirect") || "/shuati";
   const supabase = createClient();
 
   const [mode, setMode] = useState<"login" | "register">("login");
