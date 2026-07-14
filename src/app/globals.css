@@ -10,6 +10,12 @@ html {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* 统一柔和的文本选中高亮，避免默认刺眼配色 */
+::selection {
+  background: rgba(96, 165, 250, 0.35);
+  color: #fff;
+}
+
 body {
   background: var(--bg);
   color: #1a2235;
@@ -89,9 +95,11 @@ body {
 .blob {
   position: absolute;
   border-radius: 9999px;
-  filter: blur(80px);
-  opacity: 0.55;
-  animation: blob-float 14s ease-in-out infinite;
+  filter: blur(70px);
+  opacity: 0.5;
+  animation: blob-float 16s ease-in-out infinite;
+  will-change: transform;
+  transform: translateZ(0);
 }
 @keyframes blob-float {
   0%, 100% { transform: translate(0, 0) scale(1); }
@@ -170,8 +178,9 @@ body {
     radial-gradient(50% 60% at 80% 20%, rgba(217,70,239,0.30), transparent 60%),
     radial-gradient(55% 55% at 50% 80%, rgba(34,211,238,0.25), transparent 60%);
   filter: blur(40px);
-  animation: aurora-move 18s ease-in-out infinite alternate;
+  animation: aurora-move 20s ease-in-out infinite alternate;
   pointer-events: none;
+  will-change: transform;
 }
 @keyframes aurora-move {
   0%   { transform: translate3d(0,0,0) rotate(0deg) scale(1); }
@@ -194,6 +203,8 @@ body {
 .glitch {
   position: relative;
   display: inline-block;
+  -webkit-user-select: none;
+  user-select: none;
 }
 .glitch::before,
 .glitch::after {

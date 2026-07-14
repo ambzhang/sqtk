@@ -20,15 +20,7 @@ export default function CursorGlow() {
     let tx = x;
     let ty = y;
     let raf = 0;
-
-    function onMove(e: MouseEvent) {
-      tx = e.clientX;
-      ty = e.clientY;
-      if (ref.current) ref.current.style.opacity = "1";
-    }
-    function onLeave() {
-      if (ref.current) ref.current.style.opacity = "0";
-    }
+    let animating = false;
 
     function loop() {
       x += (tx - x) * 0.15;
@@ -36,11 +28,31 @@ export default function CursorGlow() {
       if (ref.current) {
         ref.current.style.transform = `translate3d(${x - 250}px, ${y - 250}px, 0)`;
       }
+      // 已足够接近目标则停止 rAF，鼠标再动时唤醒（避免静止时空转）
+      if (Math.abs(tx - x) < 0.5 && Math.abs(ty - y) < 0.5) {
+        animating = false;
+        return;
+      }
       raf = requestAnimationFrame(loop);
     }
-    loop();
+    function wake() {
+      if (!animating) {
+        animating = true;
+        raf = requestAnimationFrame(loop);
+      }
+    }
 
-    window.addEventListener("mousemove", onMove);
+    function onMove(e: MouseEvent) {
+      tx = e.clientX;
+      ty = e.clientY;
+      if (ref.current) ref.current.style.opacity = "1";
+      wake();
+    }
+    function onLeave() {
+      if (ref.current) ref.current.style.opacity = "0";
+    }
+
+    window.addEventListener("mousemove", onMove, { passive: true });
     window.addEventListener("mouseout", onLeave);
     return () => {
       cancelAnimationFrame(raf);
