@@ -8,47 +8,72 @@ import ScrollProgress from "@/components/portal/ScrollProgress";
 export const metadata: Metadata = {
   title: "安卓远程控制 · SQTK.site",
   description:
-    "一款轻量的 Android 远程控制应用，支持远程查看与操控设备屏幕、文件传输与实时协助。",
+    "基于 WebSocket 的 Android 远程控制应用——一台手机通过 WiFi 实时查看并控制另一台手机，支持屏幕共享、远程触控与小圆点导航。",
 };
 
 const FEATURES = [
   {
     icon: "🖥️",
-    title: "远程屏幕操控",
-    desc: "实时查看并操作对方 Android 设备屏幕，点按、滑动、输入同步，延迟低。",
+    title: "屏幕共享",
+    desc: "MediaProjection + VirtualDisplay 采集画面，JPEG 压缩后经 WebSocket 实时回传，低延迟同步。",
   },
   {
-    icon: "📁",
-    title: "文件双向传输",
-    desc: "在两台设备之间快速传输文件、照片、文档，无需数据线。",
+    icon: "👆",
+    title: "远程触控",
+    desc: "客户端触控坐标归一化，通过 TOUCH_BATCH 协议下发，AccessibilityService 注入真实手势。",
   },
   {
-    icon: "🤝",
-    title: "远程实时协助",
-    desc: "为家人或同事远程排查手机问题，手把手协助操作。",
+    icon: "⚪",
+    title: "小圆点导航",
+    desc: "点击/滑动/停留手势，控制服务端的返回、主页、最近应用、通知栏、控制中心。",
   },
   {
-    icon: "🔒",
-    title: "连接安全加密",
-    desc: "会话采用加密通道传输，连接需授权确认，保护隐私安全。",
+    icon: "✥",
+    title: "拖拽定位",
+    desc: "长按 2 秒进入拖拽模式，可将悬浮圆点移动到屏幕任意位置，不遮挡操作。",
   },
   {
-    icon: "⚡",
-    title: "轻量低占用",
-    desc: "安装包仅 6MB 出头，运行占用低，老设备也能流畅使用。",
+    icon: "🕘",
+    title: "连接历史",
+    desc: "基于 SharedPreferences 自动保存最近 10 条连接记录，再次连接一键选择。",
   },
   {
-    icon: "🌐",
-    title: "跨网络连接",
-    desc: "支持局域网与互联网远程连接，异地也能随时接入。",
+    icon: "🌌",
+    title: "沉浸模式",
+    desc: "客户端全屏显示远端画面并隐藏系统导航栏，最大化可视区域，专注操控。",
   },
 ];
 
-const STEPS = [
-  { step: "01", title: "下载安装", desc: "点击下方按钮下载 APK，在被控与主控设备上分别安装。" },
-  { step: "02", title: "授予权限", desc: "首次启动按提示开启无障碍/投屏等必要权限。" },
-  { step: "03", title: "建立连接", desc: "被控端生成连接码，主控端输入即可发起连接。" },
-  { step: "04", title: "开始控制", desc: "确认授权后即可远程查看与操控，随时断开。" },
+const DOT_GESTURES = [
+  { g: "点击", e: "返回" },
+  { g: "按住 ↑ 上滑", e: "主页" },
+  { g: "按住 ↑ 上滑 + 停留 0.3s", e: "最近应用" },
+  { g: "按住 ↓ 下滑", e: "通知栏" },
+  { g: "按住 ↓ 下滑 + 停留 0.3s", e: "控制中心" },
+  { g: "长按 2s", e: "拖拽移动圆点" },
+];
+
+const TECH = [
+  { k: "通信", v: "java-websocket 1.5.3" },
+  { k: "屏幕采集", v: "MediaProjection + VirtualDisplay + ImageReader (RGBA_8888)" },
+  { k: "JPEG 压缩", v: "Android Bitmap API，quality = 50" },
+  { k: "手势注入", v: "AccessibilityService dispatchGesture + performGlobalAction" },
+  { k: "界面", v: "Material Design Components + 自定义 GestureDotView（Canvas 水滴动画）" },
+  { k: "触摸协议", v: "TOUCH_BATCH:duration;x1,y1;x2,y2;… 归一化坐标" },
+];
+
+const SERVER_STEPS = [
+  { step: "01", title: "安装并打开", desc: "在被控手机上安装 APK 并打开应用。" },
+  { step: "02", title: "开启无障碍", desc: "进入系统设置 → 无障碍，开启 RemoteControl 服务。" },
+  { step: "03", title: "启动服务", desc: "输入端口号（默认 8080），点击「启动服务」。" },
+  { step: "04", title: "授权投屏", desc: "按提示授予屏幕录制（MediaProjection）权限。" },
+];
+
+const CLIENT_STEPS = [
+  { step: "01", title: "安装并打开", desc: "在控制手机上安装 APK 并打开应用。" },
+  { step: "02", title: "输入地址", desc: "填入服务端显示的 IP 地址与端口号。" },
+  { step: "03", title: "点击连接", desc: "点击「连接」，等待画面加载。" },
+  { step: "04", title: "开始操控", desc: "画面正常显示后，即可远程实时操控。" },
 ];
 
 export default function RemoteControlPage() {
@@ -94,7 +119,7 @@ export default function RemoteControlPage() {
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
           </span>
-          Android · 可直接下载安装
+          Android · WiFi 局域网 · 可直接下载
         </span>
 
         <div className="float-slow mx-auto mb-6 grid h-24 w-24 place-items-center rounded-3xl bg-gradient-to-br from-emerald-500/30 to-cyan-500/30 text-6xl ring-1 ring-white/10">
@@ -105,8 +130,8 @@ export default function RemoteControlPage() {
           安卓远程控制
         </h1>
         <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-slate-400 sm:text-lg">
-          随时随地远程查看与操控你的 Android 设备。屏幕实时同步、文件双向传输、
-          远程协助——一个 APK 全部搞定。
+          基于 WebSocket 的 Android 远程控制应用——一台手机通过 WiFi
+          实时查看并控制另一台手机。屏幕共享、远程触控、小圆点导航，一个 APK 全部搞定。
         </p>
 
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
@@ -125,7 +150,7 @@ export default function RemoteControlPage() {
       <section className="relative z-10 mx-auto max-w-5xl px-6 py-12">
         <Reveal className="mb-10 text-center">
           <h2 className="hero-title text-2xl font-bold sm:text-3xl">核心功能</h2>
-          <p className="mt-2 text-slate-400">一款应用，覆盖远程控制的完整场景</p>
+          <p className="mt-2 text-slate-400">从屏幕采集到手势注入的完整远程控制链路</p>
         </Reveal>
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((f, i) => (
@@ -142,22 +167,112 @@ export default function RemoteControlPage() {
         </div>
       </section>
 
+      {/* 小圆点手势 */}
+      <section className="relative z-10 mx-auto max-w-5xl px-6 py-12">
+        <Reveal className="mb-10 text-center">
+          <h2 className="hero-title text-2xl font-bold sm:text-3xl">小圆点手势</h2>
+          <p className="mt-2 text-slate-400">悬浮圆点上的手势直接映射到被控端的系统操作</p>
+        </Reveal>
+        <Reveal className="glass overflow-hidden rounded-2xl">
+          <div className="divide-y divide-white/5">
+            <div className="grid grid-cols-2 bg-white/[0.04] px-6 py-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+              <span>手势</span>
+              <span>效果</span>
+            </div>
+            {DOT_GESTURES.map((row) => (
+              <div
+                key={row.g}
+                className="grid grid-cols-2 items-center px-6 py-4 text-sm transition hover:bg-white/[0.04]"
+              >
+                <span className="font-medium text-white">{row.g}</span>
+                <span className="text-emerald-300">{row.e}</span>
+              </div>
+            ))}
+          </div>
+        </Reveal>
+      </section>
+
       {/* 使用步骤 */}
       <section className="relative z-10 mx-auto max-w-5xl px-6 py-12">
         <Reveal className="mb-10 text-center">
-          <h2 className="hero-title text-2xl font-bold sm:text-3xl">四步开始使用</h2>
+          <h2 className="hero-title text-2xl font-bold sm:text-3xl">如何使用</h2>
+          <p className="mt-2 text-slate-400">两台手机需处于同一 WiFi 网络</p>
         </Reveal>
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {STEPS.map((s, i) => (
-            <Reveal key={s.step} delay={i * 80}>
-              <div className="glass h-full rounded-2xl p-6">
-                <div className="hero-title text-3xl font-black">{s.step}</div>
-                <h3 className="mt-3 font-semibold text-white">{s.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-slate-400">{s.desc}</p>
+
+        <div className="grid gap-8 lg:grid-cols-2">
+          {/* 服务端 */}
+          <Reveal>
+            <div className="glass h-full rounded-3xl p-7">
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-emerald-500/15 px-4 py-1.5 text-sm font-semibold text-emerald-300 ring-1 ring-emerald-400/30">
+                📲 服务端 · 被控手机
+              </div>
+              <ol className="space-y-4">
+                {SERVER_STEPS.map((s) => (
+                  <li key={s.step} className="flex gap-4">
+                    <span className="hero-title shrink-0 text-2xl font-black">{s.step}</span>
+                    <div>
+                      <h4 className="font-semibold text-white">{s.title}</h4>
+                      <p className="mt-1 text-sm leading-relaxed text-slate-400">{s.desc}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </Reveal>
+
+          {/* 客户端 */}
+          <Reveal delay={120}>
+            <div className="glass h-full rounded-3xl p-7">
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-cyan-500/15 px-4 py-1.5 text-sm font-semibold text-cyan-300 ring-1 ring-cyan-400/30">
+                🎮 客户端 · 控制手机
+              </div>
+              <ol className="space-y-4">
+                {CLIENT_STEPS.map((s) => (
+                  <li key={s.step} className="flex gap-4">
+                    <span className="hero-title shrink-0 text-2xl font-black">{s.step}</span>
+                    <div>
+                      <h4 className="font-semibold text-white">{s.title}</h4>
+                      <p className="mt-1 text-sm leading-relaxed text-slate-400">{s.desc}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* 技术栈 */}
+      <section className="relative z-10 mx-auto max-w-5xl px-6 py-12">
+        <Reveal className="mb-10 text-center">
+          <h2 className="hero-title text-2xl font-bold sm:text-3xl">技术栈</h2>
+          <p className="mt-2 text-slate-400">原生 Android 实现，无第三方后台服务器</p>
+        </Reveal>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {TECH.map((t, i) => (
+            <Reveal key={t.k} delay={i * 60}>
+              <div className="glass flex h-full flex-col gap-1.5 rounded-2xl p-5">
+                <span className="text-xs font-semibold uppercase tracking-wide text-emerald-300">
+                  {t.k}
+                </span>
+                <span className="text-sm leading-relaxed text-slate-300">{t.v}</span>
               </div>
             </Reveal>
           ))}
         </div>
+      </section>
+
+      {/* 兼容性提示 */}
+      <section className="relative z-10 mx-auto max-w-5xl px-6 py-8">
+        <Reveal className="rounded-2xl border border-amber-400/25 bg-amber-500/[0.06] p-6">
+          <div className="flex gap-3">
+            <span className="text-xl">⚠️</span>
+            <p className="text-sm leading-relaxed text-amber-200/90">
+              部分华为 / 荣耀设备（EMUI）存在无障碍手势注入的兼容性问题：小圆点导航可正常使用，
+              但屏幕触控可能需要额外适配。其他主流机型体验正常。
+            </p>
+          </div>
+        </Reveal>
       </section>
 
       {/* 安装提示 */}
@@ -167,7 +282,8 @@ export default function RemoteControlPage() {
             <div>
               <h3 className="text-xl font-bold text-white">准备好了吗？</h3>
               <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-400">
-                下载 APK 后，如系统提示「未知来源」，请在设置中允许安装。仅供学习与个人使用。
+                下载 APK 后，如系统提示「未知来源」，请在设置中允许安装。两台设备安装同一个 APK 即可，
+                仅供学习与个人使用。
               </p>
             </div>
             <a

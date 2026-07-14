@@ -195,11 +195,11 @@ export default async function PortalHome() {
                 </div>
                 <h3 className="text-xl font-bold text-white">安卓远程控制</h3>
                 <p className="mt-2 text-sm leading-relaxed text-slate-400">
-                  一款轻量的 Android 远程控制应用，支持远程查看与操控设备屏幕、文件传输、
-                  实时协助，适合远程运维与家人协助场景。
+                  基于 WebSocket 的 Android 远程控制应用，一台手机通过 WiFi 实时查看并操控另一台——
+                  屏幕共享、远程触控、小圆点导航。
                 </p>
                 <div className="mt-5 flex flex-wrap gap-2">
-                  {["远程操控", "文件传输", "实时协助", "APK"].map((t) => (
+                  {["屏幕共享", "远程触控", "小圆点导航", "APK"].map((t) => (
                     <span key={t} className="rounded-md bg-white/5 px-2.5 py-1 text-xs text-slate-300 ring-1 ring-white/10">
                       {t}
                     </span>
