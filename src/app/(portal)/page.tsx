@@ -193,7 +193,15 @@ export default async function PortalHome() {
                 <div className="float-slow mb-5 grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-emerald-500/30 to-cyan-500/30 text-4xl ring-1 ring-white/10">
                   📱
                 </div>
-                <h3 className="text-xl font-bold text-white">安卓远程控制</h3>
+                <h3 className="text-xl font-bold text-white">
+                  安卓远程控制
+                  {/* 整张卡片可点击（stretches link） */}
+                  <Link
+                    href="/remote-control"
+                    aria-label="打开安卓远程控制网页端"
+                    className="absolute inset-0 z-0"
+                  />
+                </h3>
                 <p className="mt-2 text-sm leading-relaxed text-slate-400">
                   基于 WebSocket 的 Android 远程控制应用，一台手机通过 WiFi 实时查看并操控另一台——
                   屏幕共享、远程触控、小圆点导航。
@@ -206,16 +214,13 @@ export default async function PortalHome() {
                   ))}
                 </div>
                 <div className="mt-auto flex items-center justify-between gap-3 border-t border-white/10 pt-4 text-sm">
-                  <Link
-                    href="/remote-control"
-                    className="font-medium text-slate-300 transition hover:text-white"
-                  >
-                    查看介绍 →
-                  </Link>
+                  <span className="relative z-10 font-medium text-slate-300 transition group-hover:text-white">
+                    进入控制 →
+                  </span>
                   <a
                     href="/RemoteControl.apk"
                     download
-                    className="rounded-full bg-emerald-500/90 px-4 py-1.5 text-xs font-semibold text-white shadow-lg shadow-emerald-500/30 transition hover:scale-105 hover:bg-emerald-400"
+                    className="relative z-10 rounded-full bg-emerald-500/90 px-4 py-1.5 text-xs font-semibold text-white shadow-lg shadow-emerald-500/30 transition hover:scale-105 hover:bg-emerald-400"
                   >
                     ↓ 下载 APK
                   </a>
